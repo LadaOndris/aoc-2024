@@ -15,6 +15,8 @@
 namespace input {
     void checkStream(const std::ifstream &inputStream);
 
+    std::string read(std::ifstream &inputStream);
+
     std::string readLine(std::ifstream &inputStream);
 
     std::vector<std::string> readLines(std::ifstream &inputStream);

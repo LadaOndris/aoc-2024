@@ -11,6 +11,14 @@ namespace input {
         }
     }
 
+    std::string read(std::ifstream &inputStream) {
+        checkStream(inputStream);
+
+        std::string content((std::istreambuf_iterator<char>(inputStream)),
+                            std::istreambuf_iterator<char>());
+        return content;
+    }
+
     std::string readLine(std::ifstream &inputStream) {
         checkStream(inputStream);
 
