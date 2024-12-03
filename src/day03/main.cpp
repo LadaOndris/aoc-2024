@@ -7,6 +7,7 @@
 #include <limits>
 #include <optional>
 #include <charconv>
+#include <regex>
 #include "input.h"
 #include "print.h"
 
@@ -27,150 +28,136 @@ namespace {
         }
     };
 
-    enum class ParserState {
-        None,
-        ProcessedM,
-        ProcessedU,
-        ProcessedL,
-        ProcessedLeftParenthesis,
-        ProcessedComma,
-        ProcessedRightParenthesis
-    };
-
     class Parser {
     public:
-        explicit Parser() : state(ParserState::None) {}
+        std::vector<std::pair<MulInstruction, int>> extractValidInstructions(const std::string &inputString) {
+            std::vector<std::pair<MulInstruction, int>> instructions;
+            std::regex pattern(R"(mul\((\d+),(\d+)\))");
+            std::sregex_iterator it(inputString.begin(), inputString.end(), pattern);
+            std::sregex_iterator end;
 
-        std::vector<MulInstruction> extractValidInstructions(const std::string &inputString) {
-            std::vector<MulInstruction> instructions;
-            for (const auto &character: inputString) {
-                processCharacter(character);
+            for (; it != end; ++it) {
+                auto position = static_cast<int>(it->position());
 
-                if (state == ParserState::ProcessedRightParenthesis) {
-                    auto mulInstruction = createMulInstruction();
-                    instructions.push_back(mulInstruction);
-                    state = ParserState::None;
-                }
+                MulInstruction instruction{
+                        std::stol(it->str(1)),
+                        std::stol(it->str(2))
+                };
+                instructions.emplace_back(instruction, position);
             }
             return instructions;
         }
 
+        std::vector<int> extractPositionsOfDoInstructions(const std::string &inputString) {
+            std::vector<int> positions;
+            std::regex pattern(R"(do\(\))");
+            std::sregex_iterator it(inputString.begin(), inputString.end(), pattern);
+            std::sregex_iterator end;
 
-    private:
-        ParserState state;
-        std::vector<char> firstNumber;
-        std::vector<char> secondNumber;
-
-        void processCharacter(char character) {
-            using
-            enum ParserState;
-
-            switch (state) {
-                case None:
-                    if (character == 'm') {
-                        state = ProcessedM;
-                        firstNumber.clear();
-                        secondNumber.clear();
-                    }
-                    break;
-                case ProcessedM:
-                    if (character == 'u') {
-                        state = ProcessedU;
-                    } else {
-                        state = None;
-                    }
-                    break;
-                case ProcessedU:
-                    if (character == 'l') {
-                        state = ProcessedL;
-                    } else {
-                        state = None;
-                    }
-                    break;
-                case ProcessedL:
-                    if (character == '(') {
-                        state = ProcessedLeftParenthesis;
-                    } else {
-                        state = None;
-                    }
-                    break;
-                case ProcessedLeftParenthesis:
-                    if (character >= '0' && character <= '9') {
-                        firstNumber.push_back(character);
-                    } else if (character == ',') {
-                        if (firstNumber.empty()) {
-                            state = None;
-                        } else {
-                            state = ProcessedComma;
-                        }
-                    }
-                    else {
-                        state = None;
-                    }
-                    break;
-                case ProcessedComma:
-                    if (character >= '0' && character <= '9') {
-                        secondNumber.push_back(character);
-                    } else if (character == ')') {
-                        if (secondNumber.empty()) {
-                            state = None;
-                        } else {
-                            state = ProcessedRightParenthesis;
-                        }
-                    }
-                    else {
-                        state = None;
-                    }
-                    break;
-                case ProcessedRightParenthesis:
-                    std::cout << "Unexpected processing of ProcessedRightParenthesis state." << std::endl;
-                    break;
+            for (; it != end; ++it) {
+                auto position = static_cast<int>(it->position());
+                positions.push_back(position);
             }
+            return positions;
         }
 
-        MulInstruction createMulInstruction() {
-            return {.firstNumber=convertToInt(firstNumber),
-                    .secondNumber=convertToInt(secondNumber)};
-        }
+        std::vector<int> extractPositionsOfDontInstructions(const std::string &inputString) {
+            std::vector<int> positions;
+            std::regex pattern(R"(don't\(\))");
+            std::sregex_iterator it(inputString.begin(), inputString.end(), pattern);
+            std::sregex_iterator end;
 
-        [[nodiscard]] int convertToInt(const std::vector<char> &characters) {
-            if (characters.empty()) {
-                throw std::invalid_argument("Input vector is empty.");
+            for (; it != end; ++it) {
+                auto position = static_cast<int>(it->position());
+                positions.push_back(position);
             }
-
-            int result = 0;
-            auto [ptr, ec] = std::from_chars(characters.data(), characters.data() + characters.size(), result);
-
-            if (ec != std::errc{}) {
-                throw std::invalid_argument("Invalid input for conversion.");
-            }
-
-            return result;
+            return positions;
         }
     };
 }
 
 namespace Part1 {
 
-    void execute(std::string &content) {
-        Parser parser{};
-        auto instructions = parser.extractValidInstructions(content);
-        std::cout << instructions << std::endl;
-        long total = std::accumulate(
+
+    long sumInstructionResults(const std::vector<std::pair<MulInstruction, int>> &instructions) {
+        return std::accumulate(
                 instructions.begin(),
                 instructions.end(),
                 0l, // Initial value of the sum
-                [](long sum, const MulInstruction& instruction) {
-                    return sum + instruction.calculate();
+                [](long sum, const std::pair<MulInstruction, int> &instruction) {
+                    return sum + instruction.first.calculate();
                 });
+    }
+
+    void execute(std::string &content) {
+        Parser parser{};
+        auto instructions = parser.extractValidInstructions(content);
+
+        long total = sumInstructionResults(instructions);
+
         std::cout << total << std::endl;
     }
 }
 
 namespace Part2 {
 
-    void execute(std::string &content) {
+    std::vector<MulInstruction> extractEnabledInstructions(
+            const std::vector<std::pair<MulInstruction, int>> &instructions,
+            const std::vector<int> &doPositions,
+            const std::vector<int> &dontPositions) {
 
+        std::vector<MulInstruction> enabledInstructions;
+
+        bool enabled = true;
+        auto doPositionsIter = doPositions.begin();
+        auto dontPositionsIter = dontPositions.begin();
+
+        int lastProcessedPosition = -1;
+
+        for (const auto &[instruction, position]: instructions) {
+            while (*doPositionsIter < position && doPositionsIter != doPositions.end()) {
+                if (*doPositionsIter > lastProcessedPosition) {
+                    enabled = true;
+                    lastProcessedPosition = *doPositionsIter;
+                }
+                doPositionsIter++;
+            }
+            while (*dontPositionsIter < position && dontPositionsIter != dontPositions.end()) {
+                if (*dontPositionsIter > lastProcessedPosition) {
+                    enabled = false;
+                    lastProcessedPosition = *dontPositionsIter;
+                }
+                dontPositionsIter++;
+            }
+            if (enabled) {
+                enabledInstructions.push_back(instruction);
+            }
+        }
+        return enabledInstructions;
+    }
+
+    long sumInstructionResults(const std::vector<MulInstruction> &instructions) {
+        return std::accumulate(
+                instructions.begin(),
+                instructions.end(),
+                0l, // Initial value of the sum
+                [](long sum, const MulInstruction &instruction) {
+                    return sum + instruction.calculate();
+                });
+    }
+
+    void execute(std::string &content) {
+        Parser parser{};
+        auto instructions = parser.extractValidInstructions(content);
+        auto doInstructionPositions = parser.extractPositionsOfDoInstructions(content);
+        auto dontInstructionPositions = parser.extractPositionsOfDontInstructions(content);
+
+        auto enabledInstructions = extractEnabledInstructions(instructions, doInstructionPositions,
+                                                              dontInstructionPositions);
+
+        long total = sumInstructionResults(enabledInstructions);
+
+        std::cout << total << std::endl;
     }
 }
 
