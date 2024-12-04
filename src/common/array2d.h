@@ -22,7 +22,7 @@ public:
         m_data.resize(rows * cols);
     }
 
-    bool isInBounds(int row, int col) {
+    bool isInBounds(int row, int col) const {
         return row >= 0 && col >= 0 &&
                 row < m_rows && col < m_cols;
     }
