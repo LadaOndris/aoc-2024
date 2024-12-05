@@ -17,18 +17,33 @@ inline std::string toString(const T &elem) {
     }
 }
 
+
+template<typename T>
+inline std::string toString(const std::pair<T, T> &pair) {
+    std::ostringstream out;
+    out << "(" << pair.first << "," << pair.second << ")";
+    return out.str();
+
+}
+
 template<>
 inline std::string toString(const std::string &elem) {
     return "\"" + elem + "\"";
 }
 
 template<typename T>
+inline std::ostream &operator<<(std::ostream &out, const std::pair<T, T> &pair) {
+    out << "(" << pair.first << "," << pair.second << ")";
+    return out;
+}
+
+template<typename T>
 inline std::ostream &operator<<(std::ostream &out, const std::vector<T> &data) {
     out << "[";
     for (int i = 0; i < data.size() - 1; i++) {
-        out << toString(data[i]) << ",";
+        out << data[i] << ",";
     }
-    out << toString(data[data.size() - 1]);
+    out << data[data.size() - 1];
     out << "]";
     return out;
 }
@@ -47,5 +62,6 @@ inline std::ostream &operator<<(std::ostream &out, const Array2D<T> &data) {
     out << ']';
     return out;
 }
+
 
 #endif
