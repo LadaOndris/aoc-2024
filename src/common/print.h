@@ -54,9 +54,9 @@ inline std::ostream &operator<<(std::ostream &out, const Array2D<T> &data) {
     for (int row = 0; row < data.rows(); row++) {
         out << '[';
         for (int col = 0; col < data.cols() - 1; col++) {
-            out << toString(data(row, col)) << ',';
+            out << data(row, col) << ',';
         }
-        out << toString(data(row, data.cols() - 1));
+        out << data(row, data.cols() - 1);
         out << ']' << std::endl;
     }
     out << ']';

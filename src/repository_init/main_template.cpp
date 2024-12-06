@@ -7,6 +7,7 @@
 #include <limits>
 #include <optional>
 #include "input.h"
+#include "print.h"
 #include "array2d.h"
 
 
