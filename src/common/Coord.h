@@ -53,7 +53,7 @@ struct CoordHash {
         // Combine the hash values of col and row
         size_t colHash = std::hash<int>()(coord.col);
         size_t rowHash = std::hash<int>()(coord.row);
-        return colHash ^ (rowHash << 1); // XOR and bit-shift for combining
+        return colHash * 31 + rowHash;
     }
 };
 
