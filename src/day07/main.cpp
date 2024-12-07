@@ -53,14 +53,14 @@ namespace {
     }
 
     struct OperatorApplication {
-        Operator appliedOperator;
         OperandType result;
     };
 
     using OperatorFunction = std::function<OperandType(OperandType, OperandType)>;
 
-    bool findOperators(std::vector<OperatorApplication> &applications, const Equation &equation,
-                       const std::vector<std::pair<Operator, OperatorFunction>> &operators) {
+    bool findOperators(std::vector<OperatorApplication> &applications,
+                       const Equation &equation,
+                       const std::vector<OperatorFunction> &operators) {
         bool allOperandsUsedUp = applications.size() == equation.operarands.size() - 1;
         if (allOperandsUsedUp) {
             return applications.back().result == equation.result;
@@ -74,12 +74,12 @@ namespace {
         }
         OperandType rightOperand = equation.operarands[applications.size() + 1];
 
-        for (const auto &[op, func]: operators) {
+        for (const auto &func: operators) {
             OperandType result = func(leftOperand, rightOperand);
             if (result > equation.result) {
                 continue;
             }
-            applications.push_back(OperatorApplication{op, result});
+            applications.push_back(OperatorApplication{result});
 
             if (findOperators(applications, equation, operators)) {
                 return true;
@@ -109,9 +109,9 @@ namespace {
 namespace Part1 {
 
     bool isEquationValid(const Equation &equation) {
-        const std::vector<std::pair<Operator, OperatorFunction>> operators = {
-                {Operator::Addition,       [](OperandType a, OperandType b) { return a + b; }},
-                {Operator::Multiplication, [](OperandType a, OperandType b) { return a * b; }}
+        const std::vector<OperatorFunction> operators = {
+                [](OperandType a, OperandType b) { return a + b; },
+                [](OperandType a, OperandType b) { return a * b; }
         };
         std::vector<OperatorApplication> applications{};
         return findOperators(applications, equation, operators);
@@ -127,16 +127,16 @@ namespace Part1 {
 namespace Part2 {
 
     bool isEquationValid(const Equation &equation) {
-        const std::vector<std::pair<Operator, OperatorFunction>> operators = {
-                {Operator::Addition,       [](OperandType a, OperandType b) { return a + b; }},
-                {Operator::Multiplication, [](OperandType a, OperandType b) { return a * b; }},
-                {Operator::Concatenation,  [](OperandType a, OperandType b) {
+        const std::vector<OperatorFunction> operators = {
+                [](OperandType a, OperandType b) { return a + b; },
+                [](OperandType a, OperandType b) { return a * b; },
+                [](OperandType a, OperandType b) {
                     OperandType multiplier = 1;
                     while (multiplier <= b) {
                         multiplier *= 10;
                     }
                     return a * multiplier + b;
-                }}
+                }
         };
         std::vector<OperatorApplication> applications{};
         return findOperators(applications, equation, operators);
