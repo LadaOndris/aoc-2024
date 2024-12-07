@@ -55,13 +55,9 @@ namespace {
             return applications.back().result == equation.result;
         }
 
-        OperandType leftOperand;
-        if (!applications.empty()) {
-            leftOperand = applications.back().result;
-        } else {
-            leftOperand = equation.operarands[applications.size()];
-        }
-        OperandType rightOperand = equation.operarands[applications.size() + 1];
+        size_t index = applications.size();
+        OperandType leftOperand = (index == 0) ? equation.operarands[index] : applications.back().result;
+        OperandType rightOperand = equation.operarands[index + 1];
 
         for (const auto &func: operators) {
             OperandType result = func(leftOperand, rightOperand);
