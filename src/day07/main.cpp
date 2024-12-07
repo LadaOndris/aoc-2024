@@ -1,30 +1,19 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <functional>
-#include <algorithm>
 #include <numeric>
-#include <limits>
-#include <optional>
 #include "input.h"
-#include "array2d.h"
 #include "timer.h"
 #include <sstream>
 
 
 namespace {
 
-    enum class Operator {
-        Multiplication,
-        Addition,
-        Concatenation
-    };
-
     using OperandType = long;
 
     struct Equation {
-        OperandType result;
-        std::vector<OperandType> operarands;
+        OperandType result{};
+        std::vector<OperandType> operarands{};
     };
 
     std::vector<Equation> loadInput(std::vector<std::string> &lines) {
