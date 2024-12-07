@@ -5,6 +5,7 @@
 #include "input.h"
 #include "timer.h"
 #include <sstream>
+#include <execution>
 
 
 namespace {
@@ -76,16 +77,21 @@ namespace {
     }
 
     OperandType findCalibrationResult(const std::vector<Equation> &equations,
-                              const std::function<bool(const Equation &)> &isEquationValidFunc) {
-        auto sumValidEquations = [&isEquationValidFunc](OperandType sum, const Equation &equation) {
-            if (isEquationValidFunc(equation)) {
-                return sum + equation.result;
-            }
-            return sum;
+                                      const std::function<bool(const Equation &)> &isEquationValidFunc) {
+
+        // Lambda to compute the contribution of a single equation if it is valid
+        auto calculateContribution = [&isEquationValidFunc](const Equation &equation) -> OperandType {
+            return isEquationValidFunc(equation) ? equation.result : static_cast<OperandType>(0);
         };
 
-        auto validEquationsSum = std::accumulate(equations.begin(), equations.end(), static_cast<OperandType>(0),
-                                                 sumValidEquations);
+        OperandType validEquationsSum = std::transform_reduce(
+                std::execution::par, // Parallel execution policy
+                equations.begin(), equations.end(),
+                static_cast<OperandType>(0), // Initial value for the sum
+                std::plus<OperandType>(),    // Binary operation to combine results
+                calculateContribution        // Transformation function
+        );
+
         return validEquationsSum;
     }
 
