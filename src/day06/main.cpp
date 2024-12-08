@@ -3,11 +3,8 @@
 #include <vector>
 #include <functional>
 #include <algorithm>
-#include <numeric>
-#include <limits>
 #include <optional>
 #include <unordered_set>
-#include <list>
 #include "input.h"
 #include "array2d.h"
 #include "Coord.h"
@@ -61,7 +58,8 @@ namespace {
         return charToFieldTypeMap.at(character);
     }
 
-    Map loadInput(const std::vector<std::string> &lines) {
+    Map loadInput(const std::string &filename) {
+        auto lines = input::readFile<std::vector<std::string>>(filename, input::readLines);
         std::function<FieldType(char)> transformFunction = transformCharToFieldType;
         return input::load2D(lines, transformFunction);
     }
@@ -222,9 +220,8 @@ namespace part1 {
         std::unordered_set<Coord, CoordHash> visitedCoords;
     };
 
-    void execute(std::vector<std::string> &lines) {
-        auto map = loadInput(lines);
-
+    template<typename Input>
+    void execute(Input &map) {
         std::cout << map << std::endl;
 
         auto guardPosition = findGuardPosition(map);
@@ -263,9 +260,8 @@ namespace part2 {
         return static_cast<int>(numCreatedLoops);
     }
 ;
-    void execute(std::vector<std::string> &lines) {
-        auto map = loadInput(lines);
-
+    template<typename Input>
+    void execute(Input &map) {
         auto guardPosition = findGuardPosition(map);
         Guard guard(guardPosition);
         guard.walk(map);
@@ -278,14 +274,14 @@ namespace part2 {
 }
 
 int main() {
-    auto lines = input::readFile<std::vector<std::string>>("day06.txt", input::readLines);
+    auto input = loadInput("day06.txt");
 
     Timer timer;
-    part1::execute(lines);
+    part1::execute(input);
     std::cout << "[Part 1] Time elapsed: " << timer.elapsed() << " seconds\n";
 
     timer.reset();
-    part2::execute(lines);
+    part2::execute(input);
     std::cout << "[Part 2] Time elapsed: " << timer.elapsed() << " seconds\n";
 
     return 0;

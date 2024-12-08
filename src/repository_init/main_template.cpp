@@ -13,27 +13,40 @@
 
 namespace {
 
+    struct Input {
+
+    };
+
+    Input loadInput(const std::string &filename) {
+        auto lines = input::readFile<std::vector<std::string>>(filename, input::readLines);
+        Input input{};
+
+        return input;
+    }
+
 }
 
 namespace part1 {
 
-    void execute(std::vector<std::string> &lines) {
+    template <typename Input>
+    void execute(Input &input) {
 
     }
 }
 
 namespace part2 {
 
-    void execute(std::vector<std::string> &lines) {
+    template <typename Input>
+    void execute(Input &input) {
 
     }
 }
 
 int main() {
-    auto lines = input::readFile<std::vector<std::string>>("day01.txt", input::readLines);
+    auto input = loadInput("day01.txt");
 
-    part1::execute(lines);
-    part2::execute(lines);
+    part1::execute(input);
+    part2::execute(input);
 
     return 0;
 }

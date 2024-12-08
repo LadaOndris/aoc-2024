@@ -63,6 +63,8 @@ namespace input {
 
     std::vector<std::string> split(const std::string &string, char delimiter, Blanks blanksOption = Blanks::Allow);
 
+    std::vector<std::string> split(const std::string &string, const std::string &delimiter, Blanks blanksOption);
+
     template<typename T>
     std::vector<T> convertStringsToNumbers(const std::vector<std::string> &strings) {
         std::vector<T> numbers{};

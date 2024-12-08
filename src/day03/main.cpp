@@ -1,18 +1,17 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <functional>
-#include <algorithm>
 #include <numeric>
-#include <limits>
 #include <optional>
 #include <charconv>
 #include <regex>
 #include "input.h"
-#include "print.h"
-
 
 namespace {
+
+    std::string loadInput(const std::string &filename) {
+        return input::readFile<std::string>(filename, input::read);
+    }
 
     struct MulInstruction {
         long firstNumber;
@@ -89,9 +88,10 @@ namespace part1 {
                 });
     }
 
-    void execute(std::string &content) {
+    template<typename Input>
+    void execute(Input &input) {
         Parser parser{};
-        auto instructions = parser.extractValidInstructions(content);
+        auto instructions = parser.extractValidInstructions(input);
 
         long total = sumInstructionResults(instructions);
 
@@ -146,11 +146,12 @@ namespace part2 {
                 });
     }
 
-    void execute(std::string &content) {
+    template<typename Input>
+    void execute(Input &input) {
         Parser parser{};
-        auto instructions = parser.extractValidInstructions(content);
-        auto doInstructionPositions = parser.extractPositionsOfDoInstructions(content);
-        auto dontInstructionPositions = parser.extractPositionsOfDontInstructions(content);
+        auto instructions = parser.extractValidInstructions(input);
+        auto doInstructionPositions = parser.extractPositionsOfDoInstructions(input);
+        auto dontInstructionPositions = parser.extractPositionsOfDontInstructions(input);
 
         auto enabledInstructions = extractEnabledInstructions(instructions, doInstructionPositions,
                                                               dontInstructionPositions);
@@ -162,10 +163,10 @@ namespace part2 {
 }
 
 int main() {
-    auto content = input::readFile<std::string>("day03.txt", input::read);
+    auto input = loadInput("day03.txt");
 
-    part1::execute(content);
-    part2::execute(content);
+    part1::execute(input);
+    part2::execute(input);
 
     return 0;
 }

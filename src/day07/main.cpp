@@ -17,7 +17,8 @@ namespace {
         std::vector<OperandType> operands{};
     };
 
-    std::vector<Equation> loadInput(std::vector<std::string> &lines) {
+    std::vector<Equation> loadInput(const std::string &filename) {
+        auto lines = input::readFile<std::vector<std::string>>(filename, input::readLines);
         std::vector<Equation> equations(lines.size());
 
         for (int i = 0; i < lines.size(); i++) {
@@ -87,8 +88,8 @@ namespace part1 {
         return findOperators(equation, equation.operands[0], 0, operators);
     }
 
-    void execute(std::vector<std::string> &lines) {
-        auto equations = loadInput(lines);
+    template<typename Input>
+    void execute(Input &equations) {
         auto validEquationsSum = findCalibrationResult(equations, isEquationValid);
         std::cout << validEquationsSum << std::endl;
     }
@@ -111,15 +112,15 @@ namespace part2 {
         return findOperators(equation, equation.operands[0], 0, operators);
     }
 
-    void execute(std::vector<std::string> &lines) {
-        auto equations = loadInput(lines);
+    template<typename Input>
+    void execute(Input &equations) {
         auto validEquationsSum = findCalibrationResult(equations, isEquationValid);
         std::cout << validEquationsSum << std::endl;
     }
 }
 
 int main() {
-    auto lines = input::readFile<std::vector<std::string>>("day07.txt", input::readLines);
+    auto lines = loadInput("day07.txt");
 
     Timer timer;
     part1::execute(lines);

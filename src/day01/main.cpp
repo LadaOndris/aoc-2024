@@ -19,7 +19,9 @@ namespace {
         std::vector<int> secondList;
     };
 
-    Input loadInput(const std::vector<std::string> &lines) {
+    Input loadInput(const std::string &filename) {
+        auto lines = input::readFile<std::vector<std::string>>(filename, input::readLines);
+
         Input input(lines.size());
 
         int firstNumber;
@@ -51,9 +53,8 @@ namespace part1 {
         return result;
     }
 
-    void execute(std::vector<std::string> &lines) {
-        auto input = loadInput(lines);
-
+    template<typename Input>
+    void execute(Input &input) {
         sortList(input.firstList);
         sortList(input.secondList);
 
@@ -66,23 +67,21 @@ namespace part1 {
 
 namespace part2 {
 
-
     std::vector<int> computeSimilarityScores(const std::vector<int> &list, std::unordered_map<int, int> &counts) {
         std::vector<int> result{};
         result.reserve(list.size());
 
-        for (const auto &item : list) {
+        for (const auto &item: list) {
             int similarityScore = item * counts[item];
             result.push_back(similarityScore);
         }
         return result;
     }
 
-    void execute(std::vector<std::string> &lines) {
-        auto input = loadInput(lines);
-
+    template<typename Input>
+    void execute(Input &input) {
         std::unordered_map<int, int> counts;
-        for (const auto &item : input.secondList) {
+        for (const auto &item: input.secondList) {
             counts[item] += 1;
         }
 
@@ -94,10 +93,10 @@ namespace part2 {
 }
 
 int main() {
-    auto lines = input::readFile<std::vector<std::string>>("day01.txt", input::readLines);
+    auto input = loadInput("day01.txt");
 
-    part1::execute(lines);
-    part2::execute(lines);
+    part1::execute(input);
+    part2::execute(input);
 
     return 0;
 }

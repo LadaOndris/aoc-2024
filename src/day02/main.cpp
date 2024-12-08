@@ -1,16 +1,8 @@
 #include <iostream>
 #include <string>
-#include <sstream>
 #include <vector>
-#include <functional>
 #include <algorithm>
-#include <numeric>
-#include <limits>
-#include <optional>
 #include "input.h"
-#include "array2d.h"
-#include "print.h"
-
 
 namespace {
 
@@ -46,20 +38,15 @@ namespace {
         }
     };
 
-    Input loadInput(const std::vector<std::string> &lines) {
-        Input input;
-        input.reports.resize(lines.size());
+    Input loadInput(const std::string &filename) {
+        auto lines = input::readFile<std::vector<std::string>>(filename, input::readLines);
+        Input input{};
 
-        for (int reportId = 0; reportId < lines.size(); reportId++) {
-            auto &report = input.reports[reportId];
-
-            std::istringstream iss(lines[reportId]);
-            int level{};
-
-            while (iss >> level) {
-                report.levels.push_back(level);
-            }
+        for (const auto &line: lines) {
+            auto report = input::parseVector<int>(line, ' ');
+            input.reports.emplace_back(report);
         }
+
         return input;
     }
 
@@ -131,10 +118,8 @@ namespace part1 {
         return result;
     }
 
-
-    void execute(std::vector<std::string> &lines) {
-        auto input = loadInput(lines);
-
+    template <typename Input>
+    void execute(Input &input) {
         auto numSafeReports = std::count_if(input.reports.begin(), input.reports.end(), isReportSafe);
         std::cout << numSafeReports << std::endl;
     }
@@ -160,19 +145,18 @@ namespace part2 {
         return false;
     }
 
-    void execute(std::vector<std::string> &lines) {
-        auto input = loadInput(lines);
-
+    template <typename Input>
+    void execute(Input &input) {
         auto numSafeReports = std::count_if(input.reports.begin(), input.reports.end(), isReportSafe);
         std::cout << numSafeReports << std::endl;
     }
 }
 
 int main() {
-    auto lines = input::readFile<std::vector<std::string>>("day02.txt", input::readLines);
+    auto input = loadInput("day02.txt");
 
-    part1::execute(lines);
-    part2::execute(lines);
+    part1::execute(input);
+    part2::execute(input);
 
     return 0;
 }

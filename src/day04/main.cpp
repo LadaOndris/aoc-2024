@@ -11,17 +11,9 @@
 
 namespace {
 
-    Array2D<char> loadInput(std::vector<std::string> &lines) {
-        int rows = static_cast<int>(lines.size());
-        int cols = static_cast<int>(lines[0].size());
-
-        Array2D<char> array(rows, cols);
-
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
-                array(row, col) = lines[row][col];
-            }
-        }
+    Array2D<char> loadInput(const std::string &filename) {
+        auto lines = input::readFile<std::vector<std::string>>(filename, input::readLines);
+        auto array = input::load2D<char>(lines, [](char character) { return character; });
         return array;
     }
 
@@ -83,8 +75,9 @@ namespace part1 {
         return count;
     }
 
-    void execute(std::vector<std::string> &lines) {
-        auto array0deg = loadInput(lines);
+    template<typename Input>
+    void execute(Input &input) {
+        auto array0deg = input;
         auto array90deg = rotate90(array0deg);
         auto array180deg = rotate90(array90deg);
         auto array270deg = rotate90(array180deg);
@@ -141,19 +134,19 @@ namespace part2 {
         return count;
     }
 
-    void execute(std::vector<std::string> &lines) {
-        auto array = loadInput(lines);
-        int count = searchForCrossMas(array);
+    template<typename Input>
+    void execute(Input &input) {
+        int count = searchForCrossMas(input);
 
         std::cout << count << std::endl;
     }
 }
 
 int main() {
-    auto lines = input::readFile<std::vector<std::string>>("day04.txt", input::readLines);
+    auto input = loadInput("day04.txt");
 
-    part1::execute(lines);
-    part2::execute(lines);
+    part1::execute(input);
+    part2::execute(input);
 
     return 0;
 }

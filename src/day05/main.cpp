@@ -4,13 +4,7 @@
 #include <functional>
 #include <algorithm>
 #include <numeric>
-#include <limits>
-#include <optional>
-#include <unordered_set>
 #include "input.h"
-#include "print.h"
-#include "array2d.h"
-
 
 namespace {
 
@@ -22,34 +16,25 @@ namespace {
         std::vector<Update> updates;
     };
 
-    Input loadInput(std::vector<std::string> &lines) {
+    Input loadInput(const std::string &filename) {
         Input input{};
+        auto fileContent = input::readFile<std::string>(filename, input::read);
+        auto parts = input::split(fileContent, "\n\n", input::Blanks::Remove);
+        auto rulesPart = parts[0];
+        auto updatesPart = parts[1];
 
-        bool parsingRules = true;
-        for (const auto &line: lines) {
-            if (line.empty()) {
-                parsingRules = false;
-                continue;
-            }
-
-            std::stringstream ss(line);
-
-            if (parsingRules) {
-                std::string firstPart, secondPart;
-                if (std::getline(ss, firstPart, '|') && std::getline(ss, secondPart)) {
-                    int num1 = std::stoi(firstPart);
-                    int num2 = std::stoi(secondPart);
-                    input.rules.emplace_back(num1, num2);
-                }
-            } else {
-                Update update{};
-                std::string number;
-                while (std::getline(ss, number, ',')) {
-                    update.push_back(std::stoi(number));
-                }
-                input.updates.push_back(update);
-            }
+        auto rulesLines = input::split(rulesPart, '\n');
+        for (const auto &line : rulesLines) {
+            auto rule = input::parseVector<int>(line, '|');
+            input.rules.emplace_back(rule[0], rule[1]);
         }
+
+        auto updatesLines = input::split(updatesPart, '\n');
+        for (const auto &line : updatesLines) {
+            auto update = input::parseVector<int>(line, ',');
+            input.updates.push_back(update);
+        }
+
         return input;
     }
 
@@ -98,12 +83,8 @@ namespace {
 
 namespace part1 {
 
-    void execute(std::vector<std::string> &lines) {
-        auto input = loadInput(lines);
-
-//        std::cout << input.rules << std::endl;
-//        std::cout << input.updates << std::endl;
-
+    template<typename Input>
+    void execute(Input &input) {
         auto ruleMap = formRuleMap(input.rules);
 
         int sumOfMiddleValues = 0;
@@ -140,12 +121,8 @@ namespace part2 {
         return update;
     }
 
-    void execute(std::vector<std::string> &lines) {
-        auto input = loadInput(lines);
-
-//        std::cout << input.rules << std::endl;
-//        std::cout << input.updates << std::endl;
-
+    template<typename Input>
+    void execute(Input &input) {
         auto ruleMap = formRuleMap(input.rules);
 
         int sumOfMiddleValues = 0;
@@ -162,10 +139,10 @@ namespace part2 {
 }
 
 int main() {
-    auto lines = input::readFile<std::vector<std::string>>("day05.txt", input::readLines);
+    auto input = loadInput("day05.txt");
 
-    part1::execute(lines);
-    part2::execute(lines);
+    part1::execute(input);
+    part2::execute(input);
 
     return 0;
 }
