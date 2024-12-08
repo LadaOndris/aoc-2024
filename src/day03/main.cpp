@@ -76,7 +76,7 @@ namespace {
     };
 }
 
-namespace Part1 {
+namespace part1 {
 
 
     long sumInstructionResults(const std::vector<std::pair<MulInstruction, int>> &instructions) {
@@ -99,7 +99,7 @@ namespace Part1 {
     }
 }
 
-namespace Part2 {
+namespace part2 {
 
     std::vector<MulInstruction> extractEnabledInstructions(
             const std::vector<std::pair<MulInstruction, int>> &instructions,
@@ -164,8 +164,8 @@ namespace Part2 {
 int main() {
     auto content = input::readFile<std::string>("day03.txt", input::read);
 
-    Part1::execute(content);
-    Part2::execute(content);
+    part1::execute(content);
+    part2::execute(content);
 
     return 0;
 }

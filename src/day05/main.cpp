@@ -96,7 +96,7 @@ namespace {
 
 }
 
-namespace Part1 {
+namespace part1 {
 
     void execute(std::vector<std::string> &lines) {
         auto input = loadInput(lines);
@@ -118,7 +118,7 @@ namespace Part1 {
     }
 }
 
-namespace Part2 {
+namespace part2 {
 
     Update reorderUpdate(Update &update, RuleMap &ruleMap) {
         for (int currentNumberId = 0; currentNumberId < update.size(); currentNumberId++) {
@@ -164,8 +164,8 @@ namespace Part2 {
 int main() {
     auto lines = input::readFile<std::vector<std::string>>("day05.txt", input::readLines);
 
-    Part1::execute(lines);
-    Part2::execute(lines);
+    part1::execute(lines);
+    part2::execute(lines);
 
     return 0;
 }

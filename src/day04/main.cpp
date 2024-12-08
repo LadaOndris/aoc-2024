@@ -27,7 +27,7 @@ namespace {
 
 }
 
-namespace Part1 {
+namespace part1 {
 
     Array2D<char> rotate90(const Array2D<char> &array) {
         Array2D<char> rotated(array.cols(), array.rows());
@@ -106,7 +106,7 @@ namespace Part1 {
     }
 }
 
-namespace Part2 {
+namespace part2 {
 
     bool areCornerCharsValid(std::array<char, 4> &corners) {
         // The corners form opposing MAS. MAM or SAS is not allowed.
@@ -152,8 +152,8 @@ namespace Part2 {
 int main() {
     auto lines = input::readFile<std::vector<std::string>>("day04.txt", input::readLines);
 
-    Part1::execute(lines);
-    Part2::execute(lines);
+    part1::execute(lines);
+    part2::execute(lines);
 
     return 0;
 }

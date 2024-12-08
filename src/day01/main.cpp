@@ -37,7 +37,7 @@ namespace {
 
 }
 
-namespace Part1 {
+namespace part1 {
 
     void sortList(std::vector<int> &list) {
         std::sort(list.begin(), list.end());
@@ -64,7 +64,7 @@ namespace Part1 {
     }
 }
 
-namespace Part2 {
+namespace part2 {
 
 
     std::vector<int> computeSimilarityScores(const std::vector<int> &list, std::unordered_map<int, int> &counts) {
@@ -96,8 +96,8 @@ namespace Part2 {
 int main() {
     auto lines = input::readFile<std::vector<std::string>>("day01.txt", input::readLines);
 
-    Part1::execute(lines);
-    Part2::execute(lines);
+    part1::execute(lines);
+    part2::execute(lines);
 
     return 0;
 }

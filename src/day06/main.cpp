@@ -80,7 +80,7 @@ namespace {
     }
 }
 
-namespace Part1 {
+namespace part1 {
 
     struct CoordDirectionHash {
         std::size_t operator( )(const std::pair<Coord, Direction> &p) const {
@@ -235,9 +235,9 @@ namespace Part1 {
     }
 }
 
-namespace Part2 {
+namespace part2 {
 
-    using Guard = Part1::Guard;
+    using Guard = part1::Guard;
 
     bool placeObstacleAndDetectLoop(const Coord &startingPosition, const Coord &coord, Map &map) {
         // Cannot place an obstruction where the guard is standing.
@@ -281,11 +281,11 @@ int main() {
     auto lines = input::readFile<std::vector<std::string>>("day06.txt", input::readLines);
 
     Timer timer;
-    Part1::execute(lines);
+    part1::execute(lines);
     std::cout << "[Part 1] Time elapsed: " << timer.elapsed() << " seconds\n";
 
     timer.reset();
-    Part2::execute(lines);
+    part2::execute(lines);
     std::cout << "[Part 2] Time elapsed: " << timer.elapsed() << " seconds\n";
 
     return 0;

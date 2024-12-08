@@ -15,14 +15,14 @@ namespace {
 
 }
 
-namespace Part1 {
+namespace part1 {
 
     void execute(std::vector<std::string> &lines) {
 
     }
 }
 
-namespace Part2 {
+namespace part2 {
 
     void execute(std::vector<std::string> &lines) {
 
@@ -32,8 +32,8 @@ namespace Part2 {
 int main() {
     auto lines = input::readFile<std::vector<std::string>>("day01.txt", input::readLines);
 
-    Part1::execute(lines);
-    Part2::execute(lines);
+    part1::execute(lines);
+    part2::execute(lines);
 
     return 0;
 }
