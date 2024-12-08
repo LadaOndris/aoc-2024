@@ -10,11 +10,11 @@
 
 namespace {
 
-    using OperandType = long;
+    using OperandType = uint64_t;
 
     struct Equation {
         OperandType result{};
-        std::vector<OperandType> operarands{};
+        std::vector<OperandType> operands{};
     };
 
     std::vector<Equation> loadInput(std::vector<std::string> &lines) {
@@ -24,55 +24,36 @@ namespace {
             auto &line = lines[i];
             auto &equation = equations[i];
 
-            std::istringstream iss(line);
-
-            std::string equationResultString{};
-            std::getline(iss, equationResultString, ':');
-            equation.result = std::stol(equationResultString);
-
-            iss.ignore(1);
-
-            std::string operandString{};
-            while (iss >> operandString) {
-                OperandType operand = std::stol(operandString);
-                equation.operarands.push_back(operand);
-            }
+            auto parts = input::split(line, ':');
+            equation.result = std::stol(parts[0]);
+            equation.operands = input::parseVector<OperandType>(parts[1], ' ');
         }
 
         return equations;
     }
 
-    struct OperatorApplication {
-        OperandType result;
-    };
-
     using OperatorFunction = std::function<OperandType(OperandType, OperandType)>;
 
-    bool findOperators(std::vector<OperatorApplication> &applications,
-                       const Equation &equation,
+    bool findOperators(const Equation &equation,
+                       OperandType result,
+                       int index,
                        const std::vector<OperatorFunction> &operators) {
-        bool allOperandsUsedUp = applications.size() == equation.operarands.size() - 1;
+
+        bool allOperandsUsedUp = static_cast<size_t>(index) == equation.operands.size() - 1;
         if (allOperandsUsedUp) {
-            return applications.back().result == equation.result;
+            return result == equation.result;
         }
 
-        size_t index = applications.size();
-        OperandType leftOperand = (index == 0) ? equation.operarands[index] : applications.back().result;
-        OperandType rightOperand = equation.operarands[index + 1];
-
         for (const auto &func: operators) {
-            OperandType result = func(leftOperand, rightOperand);
+            OperandType subresult = func(result, equation.operands[index + 1]);
             if (result > equation.result) {
                 continue;
             }
-            applications.push_back(OperatorApplication{result});
 
-            if (findOperators(applications, equation, operators)) {
+            if (findOperators(equation, subresult, index + 1, operators)) {
                 return true;
             }
-            applications.pop_back();
         }
-
         return false;
     }
 
@@ -94,18 +75,16 @@ namespace {
 
         return validEquationsSum;
     }
-
 }
 
-namespace Part1 {
+namespace part1 {
 
     bool isEquationValid(const Equation &equation) {
         const std::vector<OperatorFunction> operators = {
                 [](OperandType a, OperandType b) { return a + b; },
                 [](OperandType a, OperandType b) { return a * b; }
         };
-        std::vector<OperatorApplication> applications{};
-        return findOperators(applications, equation, operators);
+        return findOperators(equation, equation.operands[0], 0, operators);
     }
 
     void execute(std::vector<std::string> &lines) {
@@ -115,7 +94,7 @@ namespace Part1 {
     }
 }
 
-namespace Part2 {
+namespace part2 {
 
     bool isEquationValid(const Equation &equation) {
         const std::vector<OperatorFunction> operators = {
@@ -129,8 +108,7 @@ namespace Part2 {
                     return a * multiplier + b;
                 }
         };
-        std::vector<OperatorApplication> applications{};
-        return findOperators(applications, equation, operators);
+        return findOperators(equation, equation.operands[0], 0, operators);
     }
 
     void execute(std::vector<std::string> &lines) {
@@ -144,11 +122,11 @@ int main() {
     auto lines = input::readFile<std::vector<std::string>>("day07.txt", input::readLines);
 
     Timer timer;
-    Part1::execute(lines);
+    part1::execute(lines);
     std::cout << "[Part 1] Time elapsed: " << timer.elapsed() << " seconds\n";
 
     timer.reset();
-    Part2::execute(lines);
+    part2::execute(lines);
     std::cout << "[Part 2] Time elapsed: " << timer.elapsed() << " seconds\n";
 
     return 0;

@@ -10,10 +10,19 @@
 #include <algorithm>
 #include <numeric>
 #include <limits>
+#include <sstream>
+#include <cstdint>
 #include "array2d.h"
 
 
 namespace input {
+
+    enum class Blanks {
+        Allow,
+        Remove
+    };
+
+
     void checkStream(const std::ifstream &inputStream);
 
     std::string read(std::ifstream &inputStream);
@@ -32,7 +41,7 @@ namespace input {
         return result;
     }
 
-    template <typename T>
+    template<typename T>
     Array2D<T> load2D(const std::vector<std::string> &lines, const std::function<T(char)> &transformFunction) {
         size_t rows = lines.size();
         size_t cols = lines[0].size();
@@ -45,6 +54,37 @@ namespace input {
         }
         return array;
     }
+
+    void ltrim(std::string& s);
+
+    void rtrim(std::string& s);
+
+    void trim(std::string& s);
+
+    std::vector<std::string> split(const std::string &string, char delimiter, Blanks blanksOption = Blanks::Allow);
+
+    template<typename T>
+    std::vector<T> convertStringsToNumbers(const std::vector<std::string> &strings) {
+        std::vector<T> numbers{};
+
+        for (const auto &str: strings) {
+            std::istringstream iss(str);
+            T number;
+            if (!(iss >> number)) {
+                throw std::invalid_argument("Invalid conversion for string: " + str);
+            }
+            numbers.push_back(number);
+        }
+
+        return numbers;
+    }
+
+    template<typename T>
+    std::vector<T> parseVector(const std::string &string, const char delimiter) {
+        auto splits = split(string, delimiter, Blanks::Remove);
+        return convertStringsToNumbers<T>(splits);
+    }
+
 
 }
 
