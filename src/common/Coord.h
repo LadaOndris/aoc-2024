@@ -46,14 +46,30 @@ struct Coord {
         };
         return directions;
     }
+
+    friend Coord operator-(const Coord &lhs, const Coord &rhs) {
+        return Coord{.col = (lhs.col - rhs.col), .row = (lhs.row - rhs.row)};
+    }
+
+    friend Coord operator+(const Coord &lhs, const Coord &rhs) {
+        return Coord{.col = (lhs.col + rhs.col), .row = (lhs.row + rhs.row)};
+    }
 };
+
+namespace std {
+    template<>
+    struct hash<Coord> {
+        std::size_t operator()(const Coord &coord) const noexcept {
+            size_t colHash = std::hash<int>()(coord.col);
+            size_t rowHash = std::hash<int>()(coord.row);
+            return colHash * 31 + rowHash;
+        }
+    };
+}
 
 struct CoordHash {
     size_t operator()(const Coord &coord) const {
-        // Combine the hash values of col and row
-        size_t colHash = std::hash<int>()(coord.col);
-        size_t rowHash = std::hash<int>()(coord.row);
-        return colHash * 31 + rowHash;
+        return std::hash<Coord>()(coord);
     }
 };
 
