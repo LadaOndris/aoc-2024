@@ -9,6 +9,7 @@
 #include "input.h"
 #include "print.h"
 #include "array2d.h"
+#include "timer.h"
 
 
 namespace {
@@ -45,8 +46,13 @@ namespace part2 {
 int main() {
     auto input = loadInput("day01.txt");
 
+    Timer timer;
     part1::execute(input);
+    std::cout << "[Part 1] Time elapsed: " << timer.elapsed() << " seconds\n";
+
+    timer.reset();
     part2::execute(input);
+    std::cout << "[Part 2] Time elapsed: " << timer.elapsed() << " seconds\n";
 
     return 0;
 }
