@@ -12,6 +12,7 @@
 #include <limits>
 #include <sstream>
 #include <cstdint>
+#include <regex>
 #include "array2d.h"
 
 
@@ -87,6 +88,7 @@ namespace input {
         return convertStringsToNumbers<T>(splits);
     }
 
+    std::vector<std::string> parseVector(const std::string &input, const std::string &pattern);
 
 }
 

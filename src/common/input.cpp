@@ -95,4 +95,20 @@ namespace input {
         rtrim(s);
     }
 
+    std::vector<std::string> parseVector(const std::string &input, const std::string &pattern) {
+        std::vector<std::string> matches{};
+
+        std::regex regex(pattern);
+        std::sregex_iterator begin(input.begin(), input.end(), regex);
+        std::sregex_iterator end{};
+
+        for (auto it = begin; it != end; ++it) {
+            // Skip the full match at index 0
+            for (size_t i = 1; i < it->size(); ++i) {
+                matches.push_back((*it)[i].str());
+            }
+        }
+        return matches;
+    }
+
 }
