@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <functional>
+#include "Coord.h"
 
 template<typename T>
 class Array2D {
@@ -22,9 +23,18 @@ public:
         m_data.resize(rows * cols);
     }
 
-    bool isInBounds(int row, int col) const {
+    [[nodiscard]] bool isInBounds(int row, int col) const noexcept {
         return row >= 0 && col >= 0 &&
-                row < m_rows && col < m_cols;
+               row < m_rows && col < m_cols;
+    }
+
+    [[nodiscard]] Coord toIndex2D(int flatIndex) const {
+        int row = flatIndex / m_cols;
+        int col = flatIndex % m_cols;
+        if (!isInBounds(row, col)) {
+            throw std::out_of_range("Array2D: Index out of bounds");
+        }
+        return Coord{.col=col, .row=row};
     }
 
     T &operator[](std::size_t index) {

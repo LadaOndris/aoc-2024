@@ -54,6 +54,11 @@ struct Coord {
     friend Coord operator+(const Coord &lhs, const Coord &rhs) {
         return Coord{.col = (lhs.col + rhs.col), .row = (lhs.row + rhs.row)};
     }
+
+    friend std::ostream &operator<<(std::ostream &oss, const Coord &coord) {
+        oss << "(" << coord.col << "," << coord.row << ")";
+        return oss;
+    }
 };
 
 namespace std {

@@ -30,7 +30,7 @@ namespace {
 namespace part1 {
 
     template <typename Input>
-    void execute(Input &input) {
+    void execute(const Input &input) {
 
     }
 }
@@ -38,7 +38,7 @@ namespace part1 {
 namespace part2 {
 
     template <typename Input>
-    void execute(Input &input) {
+    void execute(const Input &input) {
 
     }
 }

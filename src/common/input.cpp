@@ -95,6 +95,15 @@ namespace input {
         rtrim(s);
     }
 
+    std::string join(const std::vector<std::string> &strings) {
+        std::ostringstream oss{};
+
+        for (const auto &string : strings) {
+            oss << string;
+        }
+        return oss.str();
+    }
+
     std::vector<std::string> parseVector(const std::string &input, const std::string &pattern) {
         std::vector<std::string> matches{};
 
