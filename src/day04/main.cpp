@@ -5,7 +5,6 @@
 #include <algorithm>
 #include <numeric>
 #include "input.h"
-#include "print.h"
 #include "array2d.h"
 
 

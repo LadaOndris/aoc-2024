@@ -31,21 +31,6 @@ namespace {
         return {warehouse, movements};
     }
 
-}
-
-namespace part1 {
-
-
-    template<typename Input>
-    void execute(const Input &input) {
-        std::cout << input.warehouse << std::endl;
-
-
-    }
-}
-
-namespace part2 {
-
     std::optional<Coord> findRobot(const Array2D<char> &warehouse) {
         auto it = std::find(warehouse.cbegin(), warehouse.cend(), '@');
         if (it != warehouse.cend()) {
@@ -91,36 +76,11 @@ namespace part2 {
         }
     }
 
-    bool shift(Coord current, Coord adjacent, Array2D<char> &warehouse, Direction direction) {
-        // Recursive.
-        // end condition: place == ".", return true, place == '#', return false
-        // All children must return true in order to execute the shift.
-        char adjacentType = warehouse(adjacent.row, adjacent.col);
-        if (adjacentType == '.') {
-            return true;
-        } else if (adjacentType == '#') {
-            return false;
-        } else {
-            auto nextAdjacent = adjacent + getDirectionIncrements(direction);
-            bool shiftSuccessful = shift(adjacent, nextAdjacent, warehouse, direction);
-            if (shiftSuccessful) {
-                warehouse(nextAdjacent.row, nextAdjacent.col) = warehouse(adjacent.row, adjacent.col);
-                return true;
-            }
-            else {
-                return false;
-            }
-        }
-    }
-
-    Coord executeMovement(Direction direction, Coord robotPosition, Array2D<char> &warehouse) {
+    template<typename ShiftFunction>
+    Coord executeMovement(Direction direction, Coord robotPosition, Array2D<char> &warehouse, ShiftFunction shift) {
         auto adjacentPosition = robotPosition + getDirectionIncrements(direction);
         bool shiftSuccessful = shift(robotPosition, adjacentPosition, warehouse, direction);
         if (shiftSuccessful) {
-            // Shift robot too
-            warehouse(adjacentPosition.row, adjacentPosition.col) = warehouse(robotPosition.row, robotPosition.col);
-            warehouse(robotPosition.row, robotPosition.col) = '.';
-
             return adjacentPosition;
         } else {
             return robotPosition;
@@ -141,6 +101,37 @@ namespace part2 {
         }
     }
 
+}
+
+namespace part1 {
+
+    bool shift(Coord current, Coord adjacent, Array2D<char> &warehouse, Direction direction) {
+        // Recursive.
+        // end condition: place == ".", return true, place == '#', return false
+        // All children must return true in order to execute the shift.
+        char adjacentType = warehouse(adjacent.row, adjacent.col);
+        if (adjacentType == '.') {
+            return true;
+        } else if (adjacentType == '#') {
+            return false;
+        } else if (adjacentType == 'O'){
+            auto nextAdjacent = adjacent + getDirectionIncrements(direction);
+            bool shiftSuccessful = shift(adjacent, nextAdjacent, warehouse, direction);
+            if (shiftSuccessful) {
+                warehouse(nextAdjacent.row, nextAdjacent.col) = warehouse(adjacent.row, adjacent.col);
+                return true;
+            } else {
+                return false;
+            }
+        }
+        else {
+            // Shift robot too
+            warehouse(adjacent.row, adjacent.col) = warehouse(current.row, current.col);
+            warehouse(current.row, current.col) = '.';
+            return true;
+        }
+    }
+
     uint64_t computeGps(const Array2D<char> &warehouse) {
         uint64_t gpsSum = 0;
 
@@ -155,13 +146,124 @@ namespace part2 {
         auto warehouse = input.warehouse;
 
         auto robotCoord = findRobot(warehouse);
-        std::cout << *robotCoord << std::endl;
         Coord robotPosition = *robotCoord;
 
         for (const auto &movement: input.movements) {
             auto direction = directionFromMovementChar(movement);
-            robotPosition = executeMovement(direction, robotPosition, warehouse);
+            robotPosition = executeMovement(direction, robotPosition, warehouse, shift);
         }
+
+        auto gps = computeGps(warehouse);
+        std::cout << gps << std::endl;
+    }
+}
+
+namespace part2 {
+
+    Array2D<char> enlargeWarehouse(const Array2D<char> &warehouse) {
+        return warehouse;
+    }
+
+    bool canShift(Coord adjacent, Array2D<char> &warehouse, Direction direction) {
+        char adjacentType = warehouse(adjacent.row, adjacent.col);
+        if (adjacentType == '.') {
+            return true;
+        } else if (adjacentType == '#') {
+            return false;
+        }
+
+        if (direction == Direction::Up || direction == Direction::Down) {
+            if (adjacentType == '[') {
+                auto adjacentRight = adjacent + getDirectionIncrements(Direction::Right);
+                auto nextLeft = adjacent + getDirectionIncrements(direction);
+                auto nextRight = adjacentRight + getDirectionIncrements(direction);
+
+                return canShift(nextLeft, warehouse, direction) &&
+                       canShift(nextRight, warehouse, direction);
+            } else { // ']'
+                auto adjacentLeft = adjacent + getDirectionIncrements(Direction::Left);
+                auto nextLeft = adjacentLeft + getDirectionIncrements(direction);
+                auto nextRight = adjacent + getDirectionIncrements(direction);
+
+                return canShift(nextLeft, warehouse, direction) &&
+                       canShift(nextRight, warehouse, direction);
+            }
+        } else {
+            auto nextAdjacent = adjacent + getDirectionIncrements(direction);
+            return canShift(nextAdjacent, warehouse, direction);
+        }
+    }
+
+    void shift(Coord adjacent, Array2D<char> &warehouse, Direction direction) {
+        char adjacentType = warehouse(adjacent.row, adjacent.col);
+        if (adjacentType == '.' || adjacentType == '#') {
+            return;
+        }
+        else if (adjacentType == '[' || adjacentType == ']') {
+            if (direction == Direction::Up || direction == Direction::Down) {
+                if (adjacentType == '[') {
+                    auto adjacentRight = adjacent + getDirectionIncrements(Direction::Right);
+                    auto nextLeft = adjacent + getDirectionIncrements(direction);
+                    auto nextRight = adjacentRight + getDirectionIncrements(direction);
+
+                    shift(nextLeft, warehouse, direction);
+                    shift(nextRight, warehouse, direction);
+
+                    warehouse(nextLeft.row, nextLeft.col) = warehouse(adjacent.row, adjacent.col);
+                    warehouse(nextRight.row, nextRight.col) = warehouse(adjacentRight.row, adjacentRight.col);
+                } else { // ']'
+                    auto adjacentLeft = adjacent + getDirectionIncrements(Direction::Left);
+                    auto nextLeft = adjacentLeft + getDirectionIncrements(direction);
+                    auto nextRight = adjacent + getDirectionIncrements(direction);
+
+                    shift(nextLeft, warehouse, direction);
+                    shift(nextRight, warehouse, direction);
+
+                    warehouse(nextLeft.row, nextLeft.col) = warehouse(adjacentLeft.row, adjacentLeft.col);
+                    warehouse(nextRight.row, nextRight.col) = warehouse(adjacent.row, adjacent.col);
+                }
+            } else {
+                auto nextAdjacent = adjacent + getDirectionIncrements(direction);
+                shift(nextAdjacent, warehouse, direction);
+
+                warehouse(nextAdjacent.row, nextAdjacent.col) = warehouse(adjacent.row, adjacent.col);
+            }
+        }
+    }
+
+    uint64_t computeGps(const Array2D<char> &warehouse) {
+        uint64_t gpsSum = 0;
+
+        forEachItemWithCoords(warehouse, '[', [&gpsSum](const Coord &coord) {
+            gpsSum += (coord.row * 100 + coord.col);
+        });
+        return gpsSum;
+    }
+
+
+    bool shiftIfPossible(Coord current, Coord adjacent, Array2D<char> &warehouse, Direction direction) {
+        auto shiftIsPossible = canShift(adjacent, warehouse, direction);
+        if (shiftIsPossible) {
+            shift(adjacent, warehouse, direction);
+        }
+        return shiftIsPossible;
+    }
+
+    template<typename Input>
+    void execute(const Input &input) {
+        auto warehouse = enlargeWarehouse(input.warehouse);
+
+        auto robotCoord = findRobot(warehouse);
+        Coord robotPosition = *robotCoord;
+
+        for (const auto &movement: input.movements) {
+            std::cout << warehouse << std::endl;
+
+            auto direction = directionFromMovementChar(movement);
+            robotPosition = executeMovement(direction, robotPosition, warehouse, shiftIfPossible);
+        }
+
+        std::cout << warehouse << std::endl;
 
         auto gps = computeGps(warehouse);
         std::cout << gps << std::endl;
