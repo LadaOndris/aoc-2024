@@ -2,8 +2,6 @@
 #include <functional>
 #include <iostream>
 #include <limits>
-#include <numeric>
-#include <optional>
 #include <queue>
 #include <string>
 #include <unordered_set>
@@ -45,8 +43,7 @@ struct Input {
 };
 
 Input loadInput(const std::string &filename) {
-    auto lines =
-        input::readFile<std::vector<std::string>>(filename, input::readLines);
+    auto lines = input::readFile<std::vector<std::string>>(filename, input::readLines);
     Input input{};
 
     input.map = input::load2D<CellType>(lines, [](char c) {
@@ -60,8 +57,7 @@ Input loadInput(const std::string &filename) {
             case 'E':
                 return CellType::End;
             default:
-                throw std::runtime_error("Unknown cell type: " +
-                                         std::string(1, c));
+                throw std::runtime_error("Unknown cell type: " + std::string(1, c));
         }
     });
 
@@ -82,8 +78,7 @@ struct CostComparer {
 
 struct PositionHash {
     std::size_t operator()(const Position &position) const {
-        return std::hash<int>()(position.coord.row) ^
-               std::hash<int>()(position.coord.col) ^
+        return std::hash<int>()(position.coord.row) ^ std::hash<int>()(position.coord.col) ^
                std::hash<int>()(static_cast<int>(position.direction));
     }
 };
@@ -95,24 +90,21 @@ struct PositionEqual {
 };
 
 Coord getPos(const Array2D<CellType> &map, const CellType target) {
-    auto it = std::find_if(map.cbegin(), map.cend(),
-                           [target](CellType cell) { return cell == target; });
+    auto it = std::find_if(map.cbegin(), map.cend(), [target](CellType cell) { return cell == target; });
     if (it != map.cend()) {
         size_t col = std::distance(map.cbegin(), it) % map.cols();
         size_t row = std::distance(map.cbegin(), it) / map.cols();
-        return Coord{.col = static_cast<int>(col),
-                     .row = static_cast<int>(row)};
+        return Coord{.col = static_cast<int>(col), .row = static_cast<int>(row)};
     }
     throw std::runtime_error("Target position not found");
 }
 
-
 struct SearchResult {
-    std::unordered_set<Position, PositionHash, PositionEqual> closedSet;
+    int totalCost = -1;
+    std::unordered_set<Position, PositionHash, PositionEqual> closedSet{};
 };
 
-SearchResult findPath(const Input &input, const Coord &start,
-                      const Coord &end) {
+SearchResult findPath(const Input &input, const Coord &start, const Coord &end) {
     SearchResult result{};
 
     // Keep a priority queue of explored positions according to their current
@@ -130,9 +122,9 @@ SearchResult findPath(const Input &input, const Coord &start,
         openSet.pop();
 
         if (current.coord == end) {
-            std::cout << "Found path to end with cost: " << current.cost
-                      << std::endl;
+            std::cout << "Found path to end with cost: " << current.cost << std::endl;
             closedSet.insert(current);
+            result.totalCost = current.cost;
             break;
         }
 
@@ -143,8 +135,7 @@ SearchResult findPath(const Input &input, const Coord &start,
 
         closedSet.insert(current);
 
-        for (const auto &direction : {Direction::Up, Direction::Down,
-                                      Direction::Left, Direction::Right}) {
+        for (const auto &direction : getAllDirections()) {
             if (direction == getOpposite(current.direction)) {
                 continue;
             }
@@ -160,7 +151,6 @@ SearchResult findPath(const Input &input, const Coord &start,
             openSet.push({neighbor, direction, neighborCost});
         }
     }
-
     return result;
 }
 
@@ -170,23 +160,20 @@ namespace part1 {
 
 template <typename Input>
 void execute(const Input &input) {
-    std::cout << input.map << std::endl;
-
     auto start = getPos(input.map, CellType::Start);
     auto end = getPos(input.map, CellType::End);
     std::cout << "Start: " << start << ", End: " << end << std::endl;
 
     auto searchResult = findPath(input, start, end);
+    std::cout << "Total cost of optimal path: " << searchResult.totalCost << std::endl;
 }
 
 }  // namespace part1
 
 namespace part2 {
 
-void traceback(
-    const std::unordered_set<Position, PositionHash, PositionEqual> &closedSet,
-    const Coord &start, const Coord &current, const Direction inDirection,
-    std::unordered_set<Coord> &tiles) {
+void traceback(const std::unordered_set<Position, PositionHash, PositionEqual> &closedSet, const Coord &start,
+               const Coord &current, const Direction inDirection, std::unordered_set<Coord> &tiles) {
     // Search for the neighbors with the least price.
     std::unordered_set<Position, PositionHash, PositionEqual> neighbors{};
     int bestPrice = std::numeric_limits<int>::max();
@@ -197,8 +184,7 @@ void traceback(
     }
 
     // The neighbor could have come from any direction.
-    for (const auto &direction :
-         {Direction::Up, Direction::Down, Direction::Left, Direction::Right}) {
+    for (const auto &direction : getAllDirections()) {
         Position pos{.coord = current, .direction = direction, .cost = 0};
 
         auto neighborIt = closedSet.find(pos);
@@ -206,15 +192,14 @@ void traceback(
             auto neighborCopy = *neighborIt;
             // Take into account that the direction may be changing.
             // This hack is needed to trace back according to the price.
-            neighborCopy.cost +=
-                (getOpposite(inDirection) == neighborIt->direction) ? 0 : 1000;
+            neighborCopy.cost += (getOpposite(inDirection) == neighborIt->direction) ? 0 : 1000;
 
             neighbors.insert(neighborCopy);
             bestPrice = std::min(bestPrice, neighborCopy.cost);
         }
     }
 
-    // Trace back to the neighbors with the bset price
+    // Trace back to the neighbors with the best price
     for (const auto &neighbor : neighbors) {
         if (neighbor.cost == bestPrice) {
             tiles.insert(neighbor.coord);
@@ -222,44 +207,44 @@ void traceback(
             auto oppositeDirection = getOpposite(neighbor.direction);
             auto traceBackTile = neighbor.coord + oppositeDirection;
 
-            traceback(closedSet, start, traceBackTile, oppositeDirection,
-                      tiles);
+            traceback(closedSet, start, traceBackTile, oppositeDirection, tiles);
         }
     }
 }
 
-
 template <typename Input>
-void execute(const Input &input) {
+void execute(const Input &input, bool verbose = false) {
     auto start = getPos(input.map, CellType::Start);
     auto end = getPos(input.map, CellType::End);
     std::cout << "Start: " << start << ", End: " << end << std::endl;
-    
+
     auto searchResult = findPath(input, start, end);
 
     std::unordered_set<Coord> tilesOnAnyPath{};
     traceback(searchResult.closedSet, start, end, Direction::Up, tilesOnAnyPath);
-    std::cout << "Tiles on any optimal path: " << tilesOnAnyPath.size()
-              << std::endl;
+    std::cout << "Tiles on any optimal path: " << tilesOnAnyPath.size() << std::endl;
 
-    Array2D<CellType> outputMap = input.map;
-    for (const auto &tile : tilesOnAnyPath) {
-        outputMap(tile.row, tile.col) = CellType::Path;
+    if (verbose) {
+        Array2D<CellType> outputMap = input.map;
+        for (const auto &tile : tilesOnAnyPath) {
+            outputMap(tile.row, tile.col) = CellType::Path;
+        }
+        std::cout << outputMap << std::endl;
     }
-    std::cout << outputMap << std::endl;
 }
 
 }  // namespace part2
 
 int main() {
     auto input = loadInput("day16.txt");
+    bool verbose = false;
 
     Timer timer;
     part1::execute(input);
     std::cout << "[Part 1] Time elapsed: " << timer.elapsed() << " seconds\n";
 
     timer.reset();
-    part2::execute(input);
+    part2::execute(input, verbose);
     std::cout << "[Part 2] Time elapsed: " << timer.elapsed() << " seconds\n";
 
     return 0;

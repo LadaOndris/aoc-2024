@@ -1,16 +1,15 @@
 
-#ifndef AOC_2023_DIRECTION_H
-#define AOC_2023_DIRECTION_H
+#pragma once
 
-#include <stdexcept>
+#include <array>
 #include <ostream>
+#include <stdexcept>
 
-enum class Direction {
-    Up,
-    Down,
-    Left,
-    Right
-};
+enum class Direction { Up, Down, Left, Right };
+
+static consteval std::array<Direction, 4> getAllDirections() {
+    return {{Direction::Up, Direction::Down, Direction::Left, Direction::Right}};
+}
 
 inline Direction getOpposite(Direction direction) {
     switch (direction) {
@@ -44,5 +43,3 @@ inline std::ostream &operator<<(std::ostream &out, const Direction &direction) {
     }
     return out;
 }
-
-#endif
