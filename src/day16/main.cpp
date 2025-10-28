@@ -17,7 +17,7 @@
 
 namespace {
 
-enum class CellType { Empty, Wall, Start, End };
+enum class CellType { Empty, Wall, Start, End, Path };
 
 std::ostream &operator<<(std::ostream &out, const CellType &cellType) {
     switch (cellType) {
@@ -32,6 +32,9 @@ std::ostream &operator<<(std::ostream &out, const CellType &cellType) {
             break;
         case CellType::End:
             out << 'E';
+            break;
+        case CellType::Path:
+            out << 'o';
             break;
     }
     return out;
@@ -64,10 +67,6 @@ Input loadInput(const std::string &filename) {
 
     return input;
 }
-
-}  // namespace
-
-namespace part1 {
 
 struct Position {
     Coord coord;
@@ -107,13 +106,14 @@ Coord getPos(const Array2D<CellType> &map, const CellType target) {
     throw std::runtime_error("Target position not found");
 }
 
-template <typename Input>
-void execute(const Input &input) {
-    std::cout << input.map << std::endl;
 
-    auto start = getPos(input.map, CellType::Start);
-    auto end = getPos(input.map, CellType::End);
-    std::cout << "Start: " << start << ", End: " << end << std::endl;
+struct SearchResult {
+    std::unordered_set<Position, PositionHash, PositionEqual> closedSet;
+};
+
+SearchResult findPath(const Input &input, const Coord &start,
+                      const Coord &end) {
+    SearchResult result{};
 
     // Keep a priority queue of explored positions according to their current
     // price. They are to be removed once processed. An explored position is
@@ -123,7 +123,7 @@ void execute(const Input &input) {
 
     // Keep a set of visited positions - with their best prices and the
     // direction from which they were reached.
-    std::unordered_set<Position, PositionHash, PositionEqual> closedSet{};
+    auto &closedSet = result.closedSet;
 
     while (!openSet.empty()) {
         Position current = openSet.top();
@@ -132,7 +132,8 @@ void execute(const Input &input) {
         if (current.coord == end) {
             std::cout << "Found path to end with cost: " << current.cost
                       << std::endl;
-            return;
+            closedSet.insert(current);
+            break;
         }
 
         // Skip if already processed
@@ -159,13 +160,94 @@ void execute(const Input &input) {
             openSet.push({neighbor, direction, neighborCost});
         }
     }
+
+    return result;
 }
+
+}  // namespace
+
+namespace part1 {
+
+template <typename Input>
+void execute(const Input &input) {
+    std::cout << input.map << std::endl;
+
+    auto start = getPos(input.map, CellType::Start);
+    auto end = getPos(input.map, CellType::End);
+    std::cout << "Start: " << start << ", End: " << end << std::endl;
+
+    auto searchResult = findPath(input, start, end);
+}
+
 }  // namespace part1
 
 namespace part2 {
 
+void traceback(
+    const std::unordered_set<Position, PositionHash, PositionEqual> &closedSet,
+    const Coord &start, const Coord &current, const Direction inDirection,
+    std::unordered_set<Coord> &tiles) {
+    // Search for the neighbors with the least price.
+    std::unordered_set<Position, PositionHash, PositionEqual> neighbors{};
+    int bestPrice = std::numeric_limits<int>::max();
+
+    if (current == start) {
+        tiles.insert(start);
+        return;
+    }
+
+    // The neighbor could have come from any direction.
+    for (const auto &direction :
+         {Direction::Up, Direction::Down, Direction::Left, Direction::Right}) {
+        Position pos{.coord = current, .direction = direction, .cost = 0};
+
+        auto neighborIt = closedSet.find(pos);
+        if (neighborIt != closedSet.end()) {
+            auto neighborCopy = *neighborIt;
+            // Take into account that the direction may be changing.
+            // This hack is needed to trace back according to the price.
+            neighborCopy.cost +=
+                (getOpposite(inDirection) == neighborIt->direction) ? 0 : 1000;
+
+            neighbors.insert(neighborCopy);
+            bestPrice = std::min(bestPrice, neighborCopy.cost);
+        }
+    }
+
+    // Trace back to the neighbors with the bset price
+    for (const auto &neighbor : neighbors) {
+        if (neighbor.cost == bestPrice) {
+            tiles.insert(neighbor.coord);
+
+            auto oppositeDirection = getOpposite(neighbor.direction);
+            auto traceBackTile = neighbor.coord + oppositeDirection;
+
+            traceback(closedSet, start, traceBackTile, oppositeDirection,
+                      tiles);
+        }
+    }
+}
+
+
 template <typename Input>
-void execute(const Input &input) {}
+void execute(const Input &input) {
+    auto start = getPos(input.map, CellType::Start);
+    auto end = getPos(input.map, CellType::End);
+    std::cout << "Start: " << start << ", End: " << end << std::endl;
+    
+    auto searchResult = findPath(input, start, end);
+
+    std::unordered_set<Coord> tilesOnAnyPath{};
+    traceback(searchResult.closedSet, start, end, Direction::Up, tilesOnAnyPath);
+    std::cout << "Tiles on any optimal path: " << tilesOnAnyPath.size()
+              << std::endl;
+
+    Array2D<CellType> outputMap = input.map;
+    for (const auto &tile : tilesOnAnyPath) {
+        outputMap(tile.row, tile.col) = CellType::Path;
+    }
+    std::cout << outputMap << std::endl;
+}
 
 }  // namespace part2
 

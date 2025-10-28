@@ -77,6 +77,20 @@ struct Coord {
         }
         throw std::runtime_error("Unknown direction");
     }
+
+    friend Coord operator-(const Coord &lhs, Direction direction) {
+        switch (direction) {
+            case Direction::Up:
+                return lhs.getDownCoord();
+            case Direction::Down:
+                return lhs.getUpCoord();
+            case Direction::Left:
+                return lhs.getRightCoord();
+            case Direction::Right:
+                return lhs.getLeftCoord();
+        }
+        throw std::runtime_error("Unknown direction");
+    }
 };
 
 namespace std {
