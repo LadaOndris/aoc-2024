@@ -51,9 +51,9 @@ inline std::ostream &operator<<(std::ostream &out, const std::vector<T> &data) {
 template<typename T>
 inline std::ostream &operator<<(std::ostream &out, const Array2D<T> &data) {
     out << '[' << std::endl;
-    for (int row = 0; row < data.rows(); row++) {
+    for (size_t row = 0; row < data.rows(); row++) {
         out << '[';
-        for (int col = 0; col < data.cols() - 1; col++) {
+        for (size_t col = 0; col < data.cols() - 1; col++) {
             out << data(row, col) << ',';
         }
         out << data(row, data.cols() - 1);

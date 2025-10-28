@@ -24,6 +24,8 @@ foreach(DAY_DIR ${DAY_DIRECTORIES})
         RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin
     )
 
+    target_compile_options(${BINARY_NAME} PRIVATE -Wall -Wextra -Wno-unused -Wshadow)
+
     configure_file(../input_files/${DAY_NAME}.txt ${CMAKE_BINARY_DIR}/bin/${DAY_NAME}.txt COPYONLY)
 endforeach()
 

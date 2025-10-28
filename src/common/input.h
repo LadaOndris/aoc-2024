@@ -48,8 +48,8 @@ namespace input {
         size_t cols = lines[0].size();
         Array2D<T> array(rows, cols);
 
-        for (int row = 0; row < rows; row++) {
-            for (int col = 0; col < cols; col++) {
+        for (size_t row = 0; row < rows; row++) {
+            for (size_t col = 0; col < cols; col++) {
                 array(row, col) = transformFunction(lines[row][col]);
             }
         }
