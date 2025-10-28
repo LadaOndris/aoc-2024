@@ -5,6 +5,7 @@
 #include <vector>
 #include <iostream>
 #include <functional>
+#include <utility>
 #include "Coord.h"
 
 template<typename T>
@@ -24,8 +25,10 @@ public:
     }
 
     [[nodiscard]] bool isInBounds(int row, int col) const noexcept {
-        return row >= 0 && col >= 0 &&
-               row < m_rows && col < m_cols;
+        if (!std::in_range<size_t> (row) || !std::in_range<size_t>(col)) {
+            return false;
+        }
+        return static_cast<size_t>(row) < m_rows && static_cast<size_t>(col) < m_cols;
     }
 
     [[nodiscard]] Coord toIndex2D(int flatIndex) const {

@@ -5,7 +5,11 @@
 #ifndef AOC_2023_COORD_H
 #define AOC_2023_COORD_H
 
+#include "Direction.h"
+
 #include <array>
+#include <iostream>
+#include <stdexcept>
 
 struct Coord {
     int col;
@@ -58,6 +62,20 @@ struct Coord {
     friend std::ostream &operator<<(std::ostream &oss, const Coord &coord) {
         oss << "(" << coord.col << "," << coord.row << ")";
         return oss;
+    }
+
+    friend Coord operator+(const Coord &lhs, Direction direction) {
+        switch (direction) {
+            case Direction::Up:
+                return lhs.getUpCoord();
+            case Direction::Down:
+                return lhs.getDownCoord();
+            case Direction::Left:
+                return lhs.getLeftCoord();
+            case Direction::Right:
+                return lhs.getRightCoord();
+        }
+        throw std::runtime_error("Unknown direction");
     }
 };
 
