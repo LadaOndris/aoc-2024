@@ -1,6 +1,20 @@
-BasedOnStyle: Google
+BasedOnStyle: LLVM
 IndentWidth: 4
 Language: Cpp
-AllowShortFunctionsOnASingleLine: Empty
-AllowShortIfStatementsOnASingleLine: Never
 ColumnLimit: 120
+BreakBeforeBraces: Attach
+
+# --- Templates ---
+AlwaysBreakTemplateDeclarations: Yes  # Put 'template <...>' on its own line
+
+# --- Prevent one-liners ---
+AllowShortFunctionsOnASingleLine: None
+AllowShortLambdasOnASingleLine: None
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortCaseLabelsOnASingleLine: false
+AllowShortBlocksOnASingleLine: false
+
+# --- Optional readability tweaks ---
+NamespaceIndentation: All
+SpaceBeforeParens: ControlStatements
