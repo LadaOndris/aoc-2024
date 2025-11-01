@@ -1,7 +1,7 @@
 
 cmake_minimum_required(VERSION 3.10)
 
-set (CMAKE_CXX_STANDARD 20)
+set (CMAKE_CXX_STANDARD 23)
 
 project(repository_init)
 set(EXECUTABLE repository_init)
