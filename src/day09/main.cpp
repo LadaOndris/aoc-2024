@@ -195,20 +195,7 @@ namespace part2 {
         }
     };
 
-    struct ByStart {
-        bool operator()(const DiskSpan &lhs, const DiskSpan &rhs) const noexcept {
-            return lhs.start < rhs.start;
-        }
-    };
-
-    struct ByStartReverse {
-        bool operator()(const DiskSpan &lhs, const DiskSpan &rhs) const noexcept {
-            return lhs.start > rhs.start;
-        }
-    };
-
-    template <typename SpanCompare>
-    void fillSpans(std::set<DiskSpan, SpanCompare> &spans, const DiskMap &diskMap, SpanType type) {
+    void fillSpans(std::vector<DiskSpan> &spans, const DiskMap &diskMap, SpanType type) {
         bool isInSpan = false;
         uint64_t blockStartId = 0;
         uint64_t numBlocks = 0;
@@ -227,8 +214,7 @@ namespace part2 {
                     numBlocks = 0;
                     currentFileId = block.fileId;
                 } else if (type == SpanType::File && block.fileId != currentFileId) {
-                    // File ID changed, so close previous file span and start a new one
-                    spans.insert(DiskSpan{.start = blockStartId, .length = numBlocks, .fileId = currentFileId});
+                    spans.push_back(DiskSpan{.start = blockStartId, .length = numBlocks, .fileId = currentFileId});
                     blockStartId = blockId;
                     numBlocks = 0;
                     currentFileId = block.fileId;
@@ -236,55 +222,47 @@ namespace part2 {
                 numBlocks++;
             } else {
                 if (isInSpan) {
-                    spans.insert(DiskSpan{.start = blockStartId, .length = numBlocks, .fileId = currentFileId});
+                    spans.push_back(DiskSpan{.start = blockStartId, .length = numBlocks, .fileId = currentFileId});
                     isInSpan = false;
                 }
             }
         }
         if (isInSpan) {
-            spans.insert(DiskSpan{.start = blockStartId, .length = numBlocks, .fileId = currentFileId});
+            spans.push_back(DiskSpan{.start = blockStartId, .length = numBlocks, .fileId = currentFileId});
         }
     }
 
-    void defragmentSpans(std::set<DiskSpan, ByStartReverse> &fileSpans, std::set<DiskSpan, ByStart> &emptySpans) {
-        for (auto fileIt = fileSpans.begin(); fileIt != fileSpans.end();) {
-            DiskSpan fileSpan = *fileIt;
-            bool moved = false;
+    void defragmentSpans(std::vector<DiskSpan> &fileSpans, std::vector<DiskSpan> &emptySpans) {
+        static constexpr int CONSUMED_FOR_FILE = -2;
 
-            for (auto emptyIt = emptySpans.begin(); emptyIt != emptySpans.end();) {
-                const DiskSpan emptySpan = *emptyIt;
+        for (auto fIt = fileSpans.rbegin(); fIt != fileSpans.rend(); ++fIt) {
+            auto &fileSpan = *fIt;
 
-                if (emptySpan.start >= fileSpan.start)
-                    break; // No available empty span. Keep the FileSpan where it is.
-                if (emptySpan.length < fileSpan.length) {
-                    ++emptyIt;
-                    continue; // The empty span is too small. Keep searching.
+            for (auto emptyIt = emptySpans.begin(); emptyIt != emptySpans.end(); ++emptyIt) {
+                if (emptyIt->start >= fileSpan.start)
+                    break;
+                if (emptyIt->length < fileSpan.length)
+                    continue;
+                if (emptyIt->fileId == CONSUMED_FOR_FILE)
+                    continue;
+
+                fileSpan.start = emptyIt->start;
+
+                if (emptyIt->length > fileSpan.length) {
+                    // Remainder of the empty space 
+                    emptyIt->start += fileSpan.length;
+                    emptyIt->length -= fileSpan.length;
+                } else {
+                    // Do not erase (too consuming), just flag it.
+                    emptyIt->fileId = CONSUMED_FOR_FILE;
                 }
 
-                emptyIt = emptySpans.erase(emptyIt);
-
-                if (emptySpan.length > fileSpan.length) {
-                    DiskSpan emptySpanRemainder{.start = emptySpan.start + fileSpan.length,
-                                                .length = emptySpan.length - fileSpan.length};
-                    emptySpans.insert(emptySpanRemainder);
-                }
-
-                DiskSpan movedFile{.start = emptySpan.start, .length = fileSpan.length, .fileId = fileSpan.fileId};
-
-                fileIt = fileSpans.erase(fileIt);
-                fileSpans.insert(movedFile);
-
-                moved = true;
                 break;
             }
-
-            if (!moved) {
-                ++fileIt;
-            }
         }
     }
 
-    void reconstruct(DiskMap &diskMap, const std::set<DiskSpan, ByStartReverse> fileSpans) {
+    void reconstruct(DiskMap &diskMap, const std::vector<DiskSpan> &fileSpans) {
         for (auto &block : diskMap) {
             block.fileId = Block::UNOCCUPIED_FILE_ID;
         }
@@ -296,10 +274,10 @@ namespace part2 {
     }
 
     void defragment(DiskMap &diskMap) {
-        std::set<DiskSpan, ByStart> emptySpans{};
+        std::vector<DiskSpan> emptySpans{};
         fillSpans(emptySpans, diskMap, SpanType::Empty);
 
-        std::set<DiskSpan, ByStartReverse> fileSpans{};
+        std::vector<DiskSpan> fileSpans{};
         fillSpans(fileSpans, diskMap, SpanType::File);
 
         defragmentSpans(fileSpans, emptySpans);
