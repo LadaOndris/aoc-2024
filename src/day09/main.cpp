@@ -64,16 +64,13 @@ namespace {
         }
 
         uint64_t checksum() const {
-            uint64_t index = 0;
-            uint64_t checksum =
-                std::accumulate(_blocks.begin(), _blocks.end(), 0ull, [&index](uint64_t sum, const Block &block) {
-                    if (block.fileId != Block::UNOCCUPIED_FILE_ID) {
-                        sum += index * block.fileId;
-                    }
-                    index++;
-                    return sum;
-                });
-            return checksum;
+            uint64_t sum = 0;
+            for (size_t i = 0; i < _blocks.size(); ++i) {
+                if (_blocks[i].fileId != Block::UNOCCUPIED_FILE_ID) {
+                    sum += i * _blocks[i].fileId;
+                }
+            }
+            return sum;
         }
 
         auto begin() noexcept {
@@ -114,7 +111,7 @@ namespace {
     class DiskMapBuilder {
       public:
         DiskMap build(std::vector<uint8_t> input) {
-            uint64_t numBlocks = std::accumulate(input.begin(), input.end(), 0);
+            uint64_t numBlocks = std::accumulate(input.begin(), input.end(), 0ull);
             DiskMap map{numBlocks};
 
             int index = 0;
