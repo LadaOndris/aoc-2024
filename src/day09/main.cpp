@@ -1,6 +1,4 @@
-#include "array2d.h"
 #include "input.h"
-#include "print.h"
 #include "timer.h"
 #include <algorithm>
 #include <cctype>
@@ -9,10 +7,7 @@
 #include <functional>
 #include <iostream>
 #include <iterator>
-#include <limits>
-#include <list>
 #include <numeric>
-#include <optional>
 #include <print>
 #include <set>
 #include <stdexcept>
@@ -20,11 +15,6 @@
 #include <vector>
 
 namespace {
-
-    struct Space {
-        int32_t fileId;
-        int32_t size;
-    };
 
     struct Block {
         int32_t fileId{UNOCCUPIED_FILE_ID};
