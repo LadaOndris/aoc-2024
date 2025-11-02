@@ -233,31 +233,30 @@ namespace part2 {
     }
 
     void defragmentSpans(std::vector<DiskSpan> &fileSpans, std::vector<DiskSpan> &emptySpans) {
-        static constexpr int CONSUMED_FOR_FILE = -2;
-
         for (auto fIt = fileSpans.rbegin(); fIt != fileSpans.rend(); ++fIt) {
             auto &fileSpan = *fIt;
 
-            for (auto emptyIt = emptySpans.begin(); emptyIt != emptySpans.end(); ++emptyIt) {
-                if (emptyIt->start >= fileSpan.start)
+            for (auto emptyIt = emptySpans.begin(); emptyIt != emptySpans.end();) {
+                if (emptyIt->start >= fileSpan.start) {
                     break;
-                if (emptyIt->length < fileSpan.length)
+                }
+
+                if (emptyIt->length < fileSpan.length) {
+                    ++emptyIt;
                     continue;
-                if (emptyIt->fileId == CONSUMED_FOR_FILE)
-                    continue;
+                }
 
                 fileSpan.start = emptyIt->start;
 
                 if (emptyIt->length > fileSpan.length) {
-                    // Remainder of the empty space 
                     emptyIt->start += fileSpan.length;
                     emptyIt->length -= fileSpan.length;
                 } else {
-                    // Do not erase (too consuming), just flag it.
-                    emptyIt->fileId = CONSUMED_FOR_FILE;
+                    // Remove fully consumed span in O(1)
+                    emptyIt = emptySpans.erase(emptyIt);
                 }
 
-                break;
+                break; // file span placed, go to next file
             }
         }
     }
